@@ -1,0 +1,81 @@
+node {
+    properties([
+        parameters([
+            string(name: 'PRODUCER_TAG', defaultValue: 'latest', description: 'ECR tag for producer image'),
+            string(name: 'CONSUMER_TAG', defaultValue: 'latest', description: 'ECR tag for consumer image')
+        ])
+    ])
+
+    def awsRegion = 'us-west-2'
+
+    try {
+        stage('Checkout') {
+            cleanWs()
+
+            withCredentials([usernamePassword(credentialsId: 'git-pat-creds',
+                                              usernameVariable: 'USERNAME',
+                                              passwordVariable: 'PAT')]) {
+                sh '''
+                    set -e
+                    echo "Cloning repo with user ${USERNAME}"
+                    git clone https://${USERNAME}:${PAT}@github.com/your-org/your-repo.git .
+                '''
+            }
+        }
+
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                          credentialsId: 'aws-creds']]) {
+
+            stage('Terraform Init') {
+                sh '''
+                    set -e
+                    terraform init -input=false
+                '''
+            }
+
+            stage('Terraform Validate') {
+                sh '''
+                    set -e
+                    terraform validate
+                '''
+            }
+
+            stage('Terraform Plan') {
+                sh """
+                    set -e
+                    terraform plan -input=false \\
+                      -var producer_image_tag=${PRODUCER_TAG} \\
+                      -var consumer_image_tag=${CONSUMER_TAG} \\
+                      -out=tfplan
+                """
+            }
+
+            stage('Approval') {
+                // Show a manual input step so user can review plan in console
+                timeout(time: 1, unit: 'HOURS') {
+                    input message: """Apply this Terraform plan?
+
+Producer tag:  ${PRODUCER_TAG}
+Consumer tag:  ${CONSUMER_TAG}
+
+Review the plan in the console output, then click "Proceed" to deploy."""
+                }
+            }
+
+            stage('Terraform Apply (Infra + Microservices)') {
+                // Apply the previously generated plan
+                sh '''
+                    set -e
+                    terraform apply -input=false tfplan
+                '''
+            }
+        }
+
+    } catch (e) {
+        echo "CD pipeline failed: ${e}"
+        currentBuild.result = 'FAILURE'
+        throw e
+    } finally {
+        cleanWs()
+    }
+}

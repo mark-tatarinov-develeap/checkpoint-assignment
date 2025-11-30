@@ -1,0 +1,100 @@
+node {
+    // Adjust as needed
+    def awsRegion    = 'us-west-2'
+    def producerRepo = ''
+    def consumerRepo = ''
+    def imageTag     = ''
+
+    try {
+        stage('Checkout') {
+            cleanWs()
+
+            withCredentials([usernamePassword(credentialsId: 'git-creds',
+                                              usernameVariable: 'USERNAME',
+                                              passwordVariable: 'PAT')]) {
+                sh '''
+                    set -e
+                    echo "Cloning repo with user ${USERNAME}"
+                    git clone https://${USERNAME}:${PAT}@github.com/your-org/your-repo.git .
+                '''
+            }
+        }
+
+        stage('Generate random tag') {
+            // random 12-byte hex like a sha fragment
+            imageTag = sh(script: 'openssl rand -hex 12', returnStdout: true).trim()
+            echo "Generated image tag: ${imageTag}"
+
+            currentBuild.displayName = "#${env.BUILD_NUMBER} - tag:${imageTag}"
+        }
+
+        stage('Resolve AWS account & repos') {
+
+            withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                              credentialsId: 'aws-creds']]) {
+                def accountId = sh(
+                    script: "aws sts get-caller-identity --query Account --output text --region ${awsRegion}",
+                    returnStdout: true
+                ).trim()
+
+                echo "Using AWS account: ${accountId}"
+
+                producerRepo = "${accountId}.dkr.ecr.${awsRegion}.amazonaws.com/producer"
+                consumerRepo = "${accountId}.dkr.ecr.${awsRegion}.amazonaws.com/consumer"
+
+                echo "Producer repo: ${producerRepo}"
+                echo "Consumer repo: ${consumerRepo}"
+            }
+        }
+
+        stage('Login to ECR') {
+            withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                              credentialsId: 'aws-creds']]) {
+                sh """
+                    set -e
+                    aws ecr get-login-password --region ${awsRegion} \
+                      | docker login --username AWS --password-stdin ${producerRepo.split('/')[0]}
+                """
+            }
+        }
+
+        stage('Build images') {
+            echo "Building producer image: ${producerRepo}:${imageTag}"
+            sh """
+                set -e
+                docker build -t ${producerRepo}:${imageTag} ./producer
+            """
+
+            echo "Building consumer image: ${consumerRepo}:${imageTag}"
+            sh """
+                set -e
+                docker build -t ${consumerRepo}:${imageTag} ./consumer
+            """
+        }
+
+        stage('Push images') {
+            echo "Pushing producer image: ${producerRepo}:${imageTag}"
+            sh "docker push ${producerRepo}:${imageTag}"
+
+            echo "Pushing consumer image: ${consumerRepo}:${imageTag}"
+            sh "docker push ${consumerRepo}:${imageTag}"
+        }
+
+        stage('Summary') {
+            echo "Images pushed successfully:"
+            echo "  Producer: ${producerRepo}:${imageTag}"
+            echo "  Consumer: ${consumerRepo}:${imageTag}"
+
+            // Save the tag so CD can reuse it
+            writeFile file: 'image-tag.txt', text: imageTag + '\n'
+            archiveArtifacts artifacts: 'image-tag.txt', fingerprint: true
+        }
+
+    } catch (e) {
+        echo "Build failed: ${e}"
+        currentBuild.result = 'FAILURE'
+        throw e
+    } finally {
+        cleanWs()
+    }
+}
