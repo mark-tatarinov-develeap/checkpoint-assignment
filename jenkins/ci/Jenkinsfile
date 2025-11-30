@@ -62,13 +62,13 @@ node {
             echo "Building producer image: ${producerRepo}:${imageTag}"
             sh """
                 set -e
-                docker buildx -t ${producerRepo}:${imageTag} ./producer
+                docker build -t ${producerRepo}:${imageTag} ./producer
             """
 
             echo "Building consumer image: ${consumerRepo}:${imageTag}"
             sh """
                 set -e
-                docker buildx -t ${consumerRepo}:${imageTag} ./consumer
+                docker build -t ${consumerRepo}:${imageTag} ./consumer
             """
         }
 
