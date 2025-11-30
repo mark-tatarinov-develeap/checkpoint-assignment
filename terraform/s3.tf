@@ -6,15 +6,6 @@ resource "aws_s3_bucket" "messages" {
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "messages" {
-  bucket = aws_s3_bucket.messages.id
-
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
 # Default private ACL
 resource "aws_s3_bucket_ownership_controls" "messages" {
   bucket = aws_s3_bucket.messages.id

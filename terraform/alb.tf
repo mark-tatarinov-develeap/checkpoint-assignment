@@ -43,7 +43,7 @@ module "alb" {
       name_prefix = "ms1-"
       protocol    = "HTTP"
       port        = 80
-      target_type = "instance"
+      target_type = "ip"
       create_attachment = false 
 
       health_check = {
