@@ -15,7 +15,7 @@ node {
                 sh '''
                     set -e
                     echo "Cloning repo with user ${USERNAME}"
-                    git clone https://${USERNAME}:${PAT}@github.com/your-org/your-repo.git .
+                    git clone https://${USERNAME}:${PAT}@github.com/mark-tatarinov-develeap/checkpoint-assignment.git .
                 '''
             }
         }
