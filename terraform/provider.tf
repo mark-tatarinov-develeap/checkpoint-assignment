@@ -5,6 +5,13 @@ terraform {
       version = "~> 6.0"
     }
   }
+  backend "s3" {
+    bucket         = "devops-checkpoint-assignment-tfstate"  
+    key            = "terraform.tfstate"                   
+    region         = "us-west-2"
+    dynamodb_table = "terraform-locks"
+    encrypt        = true
+  }
 
   required_version = ">= 1.3.0"
 }
@@ -12,3 +19,5 @@ terraform {
 provider "aws" {
   region = var.aws_region
 }
+
+
