@@ -5,6 +5,9 @@ locals {
     ecr_dkr        = "com.amazonaws.${var.aws_region}.ecr.dkr"
     logs           = "com.amazonaws.${var.aws_region}.logs"
     ssm            = "com.amazonaws.${var.aws_region}.ssm"
+    ecs            = "com.amazonaws.${var.aws_region}.ecs"
+    ecs_agent      = "com.amazonaws.${var.aws_region}.ecs-agent"
+    ecs_telemetry  = "com.amazonaws.${var.aws_region}.ecs-telemetry"
   }
 }
 

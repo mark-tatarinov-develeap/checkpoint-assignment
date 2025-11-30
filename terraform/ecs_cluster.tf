@@ -12,24 +12,6 @@ resource "aws_ecs_cluster" "this" {
 }
 
 
-resource "aws_security_group" "ecs_instances" {
-  name        = "${var.project_name}-ecs-instances-sg"
-  description = "Security group for ECS container instances"
-  vpc_id      = module.vpc.vpc_id
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Project = var.project_name
-  }
-}
-
-
 resource "aws_launch_template" "ecs" {
   name_prefix   = "${var.project_name}-ecs-lt-"
   image_id      = data.aws_ssm_parameter.ecs_ami.value

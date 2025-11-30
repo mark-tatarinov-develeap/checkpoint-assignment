@@ -10,6 +10,8 @@ module "alb" {
 
   create_security_group = true
 
+  enable_deletion_protection = false # for home assignment I put this on false for easy destroy
+
   security_group_ingress_rules = {
     http = {
       from_port   = 80

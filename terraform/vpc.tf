@@ -22,7 +22,7 @@ module "vpc" {
 
 resource "aws_security_group" "vpc_endpoints" {
   name        = "${var.project_name}-vpce-sg"
-  description = "Allow HTTPS from private subnets to VPC endpoints"
+  description = "Allow from private subnets to VPC endpoints"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
@@ -31,6 +31,24 @@ resource "aws_security_group" "vpc_endpoints" {
     protocol    = "tcp"
     cidr_blocks = module.vpc.private_subnets_cidr_blocks
   }
+  
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Project = var.project_name
+  }
+}
+
+resource "aws_security_group" "ecs_instances" {
+  name        = "${var.project_name}-ecs-instances-sg"
+  description = "Security group for ECS container instances"
+  vpc_id      = module.vpc.vpc_id
 
   egress {
     from_port   = 0
