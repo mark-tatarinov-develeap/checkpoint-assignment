@@ -20,13 +20,19 @@ node {
             }
         }
 
-        stage('Generate random tag') {
-            // random 12-byte hex like a sha fragment
-            imageTag = sh(script: 'openssl rand -hex 12', returnStdout: true).trim()
-            echo "Generated image tag: ${imageTag}"
+        stage('Compute semantic version tag') {
+            def versionText = readFile 'version.json'
+            def versionJson = new groovy.json.JsonSlurper().parseText(versionText)
 
-            currentBuild.displayName = "#${env.BUILD_NUMBER} - tag:${imageTag}"
-        }
+            def MAJOR = versionJson.major as int
+            def MINOR = versionJson.minor as int
+            def PATCH = env.BUILD_NUMBER as int 
+
+            imageTag = "${MAJOR}.${MINOR}.${PATCH}"
+
+            echo "Computed semantic image tag from version.json + build number: ${imageTag}"
+            currentBuild.displayName = "#${env.BUILD_NUMBER} - v${imageTag}"
+}
 
         stage('Resolve AWS account & repos') {
 
@@ -84,10 +90,6 @@ node {
             echo "Images pushed successfully:"
             echo "  Producer: ${producerRepo}:${imageTag}"
             echo "  Consumer: ${consumerRepo}:${imageTag}"
-
-            // Save the tag so CD can reuse it
-            writeFile file: 'image-tag.txt', text: imageTag + '\n'
-            archiveArtifacts artifacts: 'image-tag.txt', fingerprint: true
         }
 
     } catch (e) {
