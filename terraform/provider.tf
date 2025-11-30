@@ -9,7 +9,7 @@ terraform {
     bucket         = "devops-checkpoint-assignment-tfstate"  
     key            = "terraform.tfstate"                   
     region         = "us-west-2"
-    dynamodb_table = "terraform-locks"
+    use_lockfile   = true
     encrypt        = true
   }
 
