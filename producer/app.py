@@ -22,24 +22,18 @@ _cached_token: str | None = None
 
 
 def get_expected_token() -> str:
-    """
-    Fetch the expected token from SSM Parameter Store (cached in memory).
-    """
-    global _cached_token
-    if _cached_token is not None:
-        return _cached_token
-
     try:
         resp = ssm.get_parameter(
             Name=TOKEN_PARAM_NAME,
             WithDecryption=True,
         )
-        _cached_token = resp["Parameter"]["Value"]
+        token = resp["Parameter"]["Value"]
         logger.info("Successfully loaded token from SSM parameter %s", TOKEN_PARAM_NAME)
-        return _cached_token
+        return token
     except ClientError as e:
         logger.error("Failed to get token from SSM: %s", e, exc_info=True)
         raise
+
 
 
 def validate_payload(payload: Dict[str, Any]) -> tuple[bool, str]:

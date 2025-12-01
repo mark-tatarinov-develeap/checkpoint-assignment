@@ -16,15 +16,15 @@ module "ecs_service_producer" {
     }
   }
 
-  cpu    = 256
-  memory = 512
+  cpu    = 128
+  memory = 256
 
   container_definitions = {
     producer = {
       image     = "${data.aws_caller_identity.current.account_id}.dkr.ecr.us-west-2.amazonaws.com/producer:${var.consumer_image_tag}"
       essential = true
-      cpu       = 256
-      memory    = 512
+      cpu       = 128
+      memory    = 256
 
       portMappings = [
         {
@@ -36,7 +36,7 @@ module "ecs_service_producer" {
 
       environment = [
         { name = "SQS_QUEUE_URL", value = aws_sqs_queue.producer_queue.url },
-        { name = "TOKEN_SSM_PATH", value = var.token_ssm_path }
+        { name = "TOKEN_PARAM_NAME", value = var.token_ssm_path }
       ]
 
       enable_cloudwatch_logging         = true

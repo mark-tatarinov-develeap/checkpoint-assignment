@@ -16,15 +16,15 @@ module "ecs_service_consumer" {
     }
   }
 
-  cpu    = 256
-  memory = 512
+  cpu    = 128
+  memory = 256
 
   container_definitions = {
     consumer = {
       image     = "${data.aws_caller_identity.current.account_id}.dkr.ecr.us-west-2.amazonaws.com/consumer:${var.consumer_image_tag}"
       essential = true
-      cpu       = 256
-      memory    = 512
+      cpu       = 128
+      memory    = 256
 
       environment = [
         { name = "SQS_QUEUE_URL", value = aws_sqs_queue.producer_queue.url },
