@@ -1,9 +1,9 @@
 node {
-    // Adjust as needed
     def awsRegion    = 'us-west-2'
     def producerRepo = ''
     def consumerRepo = ''
-    def imageTag     = ''
+    def producerTag  = ''
+    def consumerTag  = ''
 
     try {
         stage('Checkout') {
@@ -20,19 +20,27 @@ node {
             }
         }
 
-        stage('Compute semantic version tag') {
+        stage('Compute version tags') {
             def versionText = readFile 'version.json'
             def versionJson = new groovy.json.JsonSlurper().parseText(versionText)
 
-            def MAJOR = versionJson.major as int
-            def MINOR = versionJson.minor as int
-            def PATCH = env.BUILD_NUMBER as int 
+            def PRODUCER_MAJOR = versionJson.producer.major as int
+            def PRODUCER_MINOR = versionJson.producer.minor as int
 
-            imageTag = "${MAJOR}.${MINOR}.${PATCH}"
+            def CONSUMER_MAJOR = versionJson.consumer.major as int
+            def CONSUMER_MINOR = versionJson.consumer.minor as int
 
-            echo "Computed semantic image tag from version.json + build number: ${imageTag}"
-            currentBuild.displayName = "#${env.BUILD_NUMBER} - v${imageTag}"
-}
+            // Use Jenkins build number as PATCH
+            def PATCH = env.BUILD_NUMBER as int
+
+            producerTag = "${PRODUCER_MAJOR}.${PRODUCER_MINOR}.${PATCH}"
+            consumerTag = "${CONSUMER_MAJOR}.${CONSUMER_MINOR}.${PATCH}"
+
+            echo "Computed producer image tag: ${producerTag}"
+            echo "Computed consumer image tag: ${consumerTag}"
+
+            currentBuild.displayName = "#${env.BUILD_NUMBER} - p:${producerTag} c:${consumerTag}"
+        }
 
         stage('Resolve AWS account & repos') {
 
@@ -65,31 +73,31 @@ node {
         }
 
         stage('Build images') {
-            echo "Building producer image: ${producerRepo}:${imageTag}"
+            echo "Building producer image: ${producerRepo}:${producerTag}"
             sh """
                 set -e
-                docker build -t ${producerRepo}:${imageTag} ./producer/.
+                docker build -t ${producerRepo}:${producerTag} ./producer/.
             """
 
-            echo "Building consumer image: ${consumerRepo}:${imageTag}"
+            echo "Building consumer image: ${consumerRepo}:${consumerTag}"
             sh """
                 set -e
-                docker build -t ${consumerRepo}:${imageTag} ./consumer/.
+                docker build -t ${consumerRepo}:${consumerTag} ./consumer/.
             """
         }
 
         stage('Push images') {
-            echo "Pushing producer image: ${producerRepo}:${imageTag}"
-            sh "docker push ${producerRepo}:${imageTag}"
+            echo "Pushing producer image: ${producerRepo}:${producerTag}"
+            sh "docker push ${producerRepo}:${producerTag}"
 
-            echo "Pushing consumer image: ${consumerRepo}:${imageTag}"
-            sh "docker push ${consumerRepo}:${imageTag}"
+            echo "Pushing consumer image: ${consumerRepo}:${consumerTag}"
+            sh "docker push ${consumerRepo}:${consumerTag}"
         }
 
         stage('Summary') {
             echo "Images pushed successfully:"
-            echo "  Producer: ${producerRepo}:${imageTag}"
-            echo "  Consumer: ${consumerRepo}:${imageTag}"
+            echo "  Producer: ${producerRepo}:${producerTag}"
+            echo "  Consumer: ${consumerRepo}:${consumerTag}"
         }
 
     } catch (e) {

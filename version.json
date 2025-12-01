@@ -1,4 +1,10 @@
 {
-  "major": 1,
-  "minor": 0
+  "producer": {
+    "major": 1,
+    "minor": 0
+  },
+  "consumer": {
+    "major": 1,
+    "minor": 0
+  }
 }
