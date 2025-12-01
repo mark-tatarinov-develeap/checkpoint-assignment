@@ -36,6 +36,7 @@ Some important points I want to address:
 * ECRs were also created manually - I wouldn't want it as part of the CD, ideally they should be created using terraform
 * ALB listens on port 80, aka without TLS encryption, in a "real project" I would create an ACM certificate using IaC and attach it to a 443 listener created for the ALB, then redirect the traffic to port 80/8080 after TLS termination.
 * I had no permission to block public access to the S3 bucket, de-attach ENI and maybe more stuff I probably forgot, which causes destroy operations to not fully be executed, using my access and secret keys.
+* Ideally SQS should also have a DLQ attached to it, here it's pointless but in more complex workloads it's a best practice.
 
 ## CI/CD - What We Have And What We Should have
 
