@@ -157,4 +157,4 @@ If we destroy and redeploy terraform, ALB DNS might change so the endpoints them
 
 Following the docs, there are things I mentioned that should work diffrently, it's important for me to clarify that the 2 reasons it's written here rather than applied, is to save money, and save time, IRL things should not look like here, this is only a partial demonstration.
 
-I hope I haven't missed anything writing this README late at night to make it on-time, if there are any questions, feel free to contact me.
+If there are any questions, feel free to contact me.
