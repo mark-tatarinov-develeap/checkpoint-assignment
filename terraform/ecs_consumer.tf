@@ -28,7 +28,8 @@ module "ecs_service_consumer" {
 
       environment = [
         { name = "SQS_QUEUE_URL", value = aws_sqs_queue.producer_queue.url },
-        { name = "OUTPUT_BUCKET", value = aws_s3_bucket.messages.bucket }
+        { name = "OUTPUT_BUCKET", value = aws_s3_bucket.messages.bucket },
+        { name = "POLL_INTERVAL_SECONDS", value = "60"}
       ]
 
       enable_cloudwatch_logging         = true
