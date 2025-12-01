@@ -46,6 +46,7 @@ The stuff CI is missing:
 * Component (integration) Tests with a temporary env - much easier done on EKS, ECS is not ideal for this at all in my opinion
 * Security Scans with tools like Trivy, CheckMarx, Snyk, etc
 * In case we use an EKS I would also add packaging and pushing an Helm chart
+* Real semantic and/or semi-semantic versioning, take into considaration release, feature and hotfix branches.
 
 The CD is relatively simple here, takes image tags as parameters, then runs a validation and a terraform plan, then waits for user input to apply (or abort).
 
