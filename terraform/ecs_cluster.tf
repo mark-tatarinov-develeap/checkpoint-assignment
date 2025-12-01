@@ -45,9 +45,9 @@ resource "aws_launch_template" "ecs" {
 
 resource "aws_autoscaling_group" "ecs" {
   name                = "${var.project_name}-ecs-asg"
-  desired_capacity    = 1
+  desired_capacity    = 3
   min_size            = 1
-  max_size            = 2
+  max_size            = 4
   vpc_zone_identifier = module.vpc.private_subnets
   health_check_type   = "EC2"
   force_delete        = true

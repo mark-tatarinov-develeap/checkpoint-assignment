@@ -19,6 +19,13 @@ module "alb" {
       ip_protocol = "tcp"
       description = "HTTP from the internet"
       cidr_ipv4   = "0.0.0.0/0"
+    },
+      grafana = {
+      from_port   = 3000
+      to_port     = 3000
+      ip_protocol = "tcp"
+      description = "HTTP from the internet to Grafana"
+      cidr_ipv4   = "0.0.0.0/0"
     }
   }
 
