@@ -113,12 +113,7 @@ def health():
 
 @app.route("/process", methods=["POST"])
 def process():
-    """
-    Main endpoint to receive email payload + token.
-    """
-    if not request.is_json:
-        return jsonify({"error": "Expected application/json body"}), 400
-
+    ...
     payload = request.get_json(silent=True)
     is_valid, error_msg = validate_payload(payload)
 
@@ -127,11 +122,13 @@ def process():
         return jsonify({"error": error_msg}), 400
 
     try:
-        send_to_sqs(payload)
+        # ⬇ send only the data section
+        send_to_sqs(payload["data"])
     except Exception:
         return jsonify({"error": "Failed to publish message to SQS"}), 500
 
     return jsonify({"status": "accepted"}), 202
+
 
 
 if __name__ == "__main__":

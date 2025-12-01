@@ -62,7 +62,7 @@ def process_messages(messages: List[Dict[str, Any]]) -> None:
 def poll_loop() -> None:
     """
     Poll SQS every X seconds and process messages.
-    Uses long polling where possible.
+    Checks the queue once per interval instead of aggressively long-polling.
     """
     logger.info(
         "Starting SQS consumer. Queue=%s, bucket=%s, poll_interval=%ss",
@@ -73,24 +73,28 @@ def poll_loop() -> None:
 
     while True:
         try:
+            logger.info("Checking SQS queue for messages...")
             resp = sqs.receive_message(
                 QueueUrl=SQS_QUEUE_URL,
                 MaxNumberOfMessages=10,
-                WaitTimeSeconds=20,
+                WaitTimeSeconds=0,
             )
         except ClientError as e:
             logger.error("Error receiving messages from SQS: %s", e, exc_info=True)
+            logger.info("Sleeping for %s seconds before next poll (after error)...", POLL_INTERVAL_SECONDS)
             time.sleep(POLL_INTERVAL_SECONDS)
             continue
 
         messages = resp.get("Messages", [])
         if not messages:
-            logger.debug("No messages received, sleeping for %s seconds", POLL_INTERVAL_SECONDS)
-            time.sleep(POLL_INTERVAL_SECONDS)
-            continue
+            logger.debug("No messages received from SQS.")
+        else:
+            logger.info("Received %d messages from SQS", len(messages))
+            process_messages(messages)
 
-        logger.info("Received %d messages from SQS", len(messages))
-        process_messages(messages)
+        logger.debug("Sleeping for %s seconds before next poll...", POLL_INTERVAL_SECONDS)
+        time.sleep(POLL_INTERVAL_SECONDS)
+
 
 
 if __name__ == "__main__":
