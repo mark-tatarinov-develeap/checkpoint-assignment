@@ -94,6 +94,7 @@ Missing things:
 * Application logs
 * Prometheus Metrics - this would be heavy and time consuming to install on t2.micro cluster, I would definetly use Prometheus + Alert Manager as well in real life (not a fan of Grafana alerts)
 * Alerts
+* A dedicated Grafana repo, which does not include the terraform code and only has Datasource and Dashboard Jsons, with a pipeline to deploy them
 
 Another point: An older, already destroyed ALB, might appear in the ALB variable of Grafana, if you see no data on the ALB graphs, try choosing the other one, this one worked.
 
